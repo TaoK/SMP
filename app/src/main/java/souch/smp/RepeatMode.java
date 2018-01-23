@@ -19,5 +19,25 @@
 package souch.smp;
 
 public enum RepeatMode {
-    REPEAT_ALL, REPEAT_ONE, REPEAT_GROUP
+    REPEAT_ALL(0),
+    REPEAT_TOP(1),
+    REPEAT_2ND(2),
+    REPEAT_3RD(3),
+    REPEAT_4TH(4),
+    REPEAT_ONE(Constants.LEVEL_INDIVIDUAL),
+    REPEAT_GROUP(Constants.LEVEL_LEAF);
+
+    private final int level;
+    int getLevel() {
+        return level;
+    }
+
+    RepeatMode(int level) {
+        this.level = level;
+    }
+
+    public static class Constants {
+        public static final int LEVEL_LEAF = -1;
+        public static final int LEVEL_INDIVIDUAL = 99;
+    }
 }

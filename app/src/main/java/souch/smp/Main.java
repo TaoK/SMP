@@ -528,6 +528,10 @@ public class Main extends Activity {
         altBld.setTitle(getString(R.string.action_repeat_title));
         final CharSequence[] items = {
                 getString(R.string.action_repeat_all),
+                getString(R.string.action_repeat_top),
+                getString(R.string.action_repeat_2nd),
+                getString(R.string.action_repeat_3rd),
+                getString(R.string.action_repeat_4th),
                 getString(R.string.action_repeat_group),
                 getString(R.string.action_repeat_one)
         };
@@ -535,10 +539,18 @@ public class Main extends Activity {
         int checkedItem;
         if (rows.getRepeatMode() == RepeatMode.REPEAT_ALL)
             checkedItem = 0;
-        else if (rows.getRepeatMode() == RepeatMode.REPEAT_GROUP)
+        else if (rows.getRepeatMode() == RepeatMode.REPEAT_TOP)
             checkedItem = 1;
-        else
+        else if (rows.getRepeatMode() == RepeatMode.REPEAT_2ND)
             checkedItem = 2;
+        else if (rows.getRepeatMode() == RepeatMode.REPEAT_3RD)
+            checkedItem = 3;
+        else if (rows.getRepeatMode() == RepeatMode.REPEAT_4TH)
+            checkedItem = 4;
+        else if (rows.getRepeatMode() == RepeatMode.REPEAT_GROUP)
+            checkedItem = 5;
+        else
+            checkedItem = 6;
 
         altBld.setSingleChoiceItems(items, checkedItem, new DialogInterface.OnClickListener()
         {
@@ -551,9 +563,21 @@ public class Main extends Activity {
                             rows.setRepeatMode(RepeatMode.REPEAT_ALL);
                             break;
                         case 1:
-                            rows.setRepeatMode(RepeatMode.REPEAT_GROUP);
+                            rows.setRepeatMode(RepeatMode.REPEAT_TOP);
                             break;
                         case 2:
+                            rows.setRepeatMode(RepeatMode.REPEAT_2ND);
+                            break;
+                        case 3:
+                            rows.setRepeatMode(RepeatMode.REPEAT_3RD);
+                            break;
+                        case 4:
+                            rows.setRepeatMode(RepeatMode.REPEAT_4TH);
+                            break;
+                        case 5:
+                            rows.setRepeatMode(RepeatMode.REPEAT_GROUP);
+                            break;
+                        case 6:
                             rows.setRepeatMode(RepeatMode.REPEAT_ONE);
                             break;
                     }
@@ -644,6 +668,22 @@ public class Main extends Activity {
                 item.setIcon(R.drawable.ic_menu_repeat_all);
                 item.setTitle(getString(R.string.state_repeat_all));
                 break;
+            case REPEAT_TOP:
+                item.setIcon(R.drawable.ic_menu_repeat_group);
+                item.setTitle(getString(R.string.state_repeat_top));
+                break;
+            case REPEAT_2ND:
+                item.setIcon(R.drawable.ic_menu_repeat_group);
+                item.setTitle(getString(R.string.state_repeat_2nd));
+                break;
+            case REPEAT_3RD:
+                item.setIcon(R.drawable.ic_menu_repeat_group);
+                item.setTitle(getString(R.string.state_repeat_3rd));
+                break;
+            case REPEAT_4TH:
+                item.setIcon(R.drawable.ic_menu_repeat_group);
+                item.setTitle(getString(R.string.state_repeat_4th));
+                break;
             case REPEAT_ONE:
                 item.setIcon(R.drawable.ic_menu_repeat_one);
                 item.setTitle(getString(R.string.state_repeat_one));
@@ -666,6 +706,10 @@ public class Main extends Activity {
             case REPEAT_ONE:
                 img.setImageResource(R.drawable.ic_menu_repeat_one);
                 break;
+            case REPEAT_TOP:
+            case REPEAT_2ND:
+            case REPEAT_3RD:
+            case REPEAT_4TH:
             case REPEAT_GROUP:
                 img.setImageResource(R.drawable.ic_menu_repeat_group);
                 break;

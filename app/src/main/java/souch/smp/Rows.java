@@ -151,64 +151,92 @@ public class Rows {
     }
 
     public void moveToRandomSong() {
-        if (rowsUnfolded.size() <= 0)
+        int fromSongPos = 0;
+        int toSongPos = rowsUnfolded.size() - 1;
+
+        //If within-group random, then establish target group bounds
+        if (repeatMode != RepeatMode.REPEAT_ALL &&
+                repeatMode != RepeatMode.REPEAT_ONE
+                ) {
+            fromSongPos = getFirstSongPosInGroup(currPos, repeatMode.getLevel());
+            toSongPos = getLastSongPosInGroup(currPos, repeatMode.getLevel());
+        }
+
+        //if group has one song or less, stay there.
+        if (fromSongPos >= toSongPos)
             return;
 
-        if (repeatMode == RepeatMode.REPEAT_GROUP) {
-            int firstSongPos = getFirstSongPosInGroup(currPos);
-            int lastSongPos = getLastSongPosInGroup(currPos);
-            if (lastSongPos <= firstSongPos)
-                return;
-            // save the random song chosen
-            shuffleSavedPos.add(currPos);
+        // save the random song previously chosen/played
+        shuffleSavedPos.add(currPos);
 
-            // pick a new pos
-            int oldPos = currPos;
-            while (oldPos == currPos) {
-                // +1 -> next int n is exclusive
-                currPos = firstSongPos + random.nextInt((lastSongPos - firstSongPos) + 1);
-            }
-        }
-        else {
-            // save the random song chosen
-            shuffleSavedPos.add(currPos);
+        // pick a new pos: can't be the same as previous one, and must be a song
+        int newPos;
+        do {
+            newPos = fromSongPos + random.nextInt((toSongPos - fromSongPos) + 1);
+        } while (newPos == currPos || rowsUnfolded.get(newPos).getClass() != RowSong.class);
 
-            int pos;
-            do {
-                pos = random.nextInt(rowsUnfolded.size());
-            } while (pos == currPos || rowsUnfolded.get(pos).getClass() != RowSong.class);
-
+        //Remove old folder highlighting (if we've changed folder)
+        if (rowsUnfolded.get(newPos).getParent() != rowsUnfolded.get(currPos).getParent())
             setGroupSelectedState(currPos, false);
 
-            currPos = pos;
-
-            setGroupSelectedState(currPos, true);
-        }
+        currPos = newPos;
+        setGroupSelectedState(currPos, true);
     }
 
     // return the pos of the last song belonging to the given songPos group
-    int getLastSongPosInGroup(int songPos) {
+    int getLastSongPosInLeafGroup(int songPos) {
+        return getLastSongPosInGroup(songPos, RepeatMode.Constants.LEVEL_LEAF);
+    }
+
+    // return the pos of the last song belonging to the given songPos group
+    int getLastSongPosInGroup(int songPos, int requestedGroupLevel) {
         Row currParent = rowsUnfolded.get(songPos).parent;
-        songPos++;
+        int targetGroupLevel = getTargetGroupLevel(requestedGroupLevel, currParent);
+
+        int currPos = songPos + 1;
         // if next row is the end of the list or a group or a different group, we reached another group
-        while (songPos < rowsUnfolded.size() &&
-                rowsUnfolded.get(songPos).getClass() == RowSong.class &&
-                rowsUnfolded.get(songPos).parent == currParent) {
-            songPos++;
+        while (currPos < rowsUnfolded.size() &&
+                rowsUnfolded.get(currPos).getLevel() > targetGroupLevel
+                ) {
+            if (rowsUnfolded.get(currPos).getClass() == RowSong.class)
+                songPos = currPos;
+
+            currPos++;
         }
-        return songPos - 1;
+        return songPos;
     }
 
     // return the pos of the first song belonging to the given songPos group
-    int getFirstSongPosInGroup(int songPos) {
+    int getFirstSongPosInLeafGroup(int songPos) {
+        return getFirstSongPosInGroup(songPos, RepeatMode.Constants.LEVEL_LEAF);
+    }
+
+    // return the pos of the first song belonging to the given songPos group
+    int getFirstSongPosInGroup(int songPos, int requestedGroupLevel) {
         Row currParent = rowsUnfolded.get(songPos).parent;
-        songPos--;
-        while (songPos > 0 &&
-                rowsUnfolded.get(songPos).getClass() == RowSong.class &&
-                rowsUnfolded.get(songPos).parent == currParent) {
-            songPos--;
+        int targetGroupLevel = getTargetGroupLevel(requestedGroupLevel, currParent);
+
+        int currPos = songPos - 1;
+        while (currPos > 0 &&
+                rowsUnfolded.get(currPos).getLevel() > targetGroupLevel
+                ) {
+            if (rowsUnfolded.get(currPos).getClass() == RowSong.class)
+                songPos = currPos;
+
+            currPos--;
         }
-        return songPos + 1;
+
+        return songPos;
+    }
+
+    private int getTargetGroupLevel(int requestedGroupLevel, Row currParent) {
+        int currentGroupLevel = currParent.getLevel();
+        int targetGroupLevel = requestedGroupLevel;
+        if (targetGroupLevel == RepeatMode.Constants.LEVEL_LEAF)
+            targetGroupLevel = currentGroupLevel;
+        if (targetGroupLevel > currentGroupLevel)
+            targetGroupLevel = currentGroupLevel;
+        return targetGroupLevel;
     }
 
     // go back to previous random song done
@@ -233,60 +261,66 @@ public class Rows {
     }
 
     public void moveToNextSong() {
-        if (repeatMode == RepeatMode.REPEAT_GROUP) {
-            int lastSongPos = getLastSongPosInGroup(currPos);
-            if (currPos == lastSongPos)
-                currPos = getFirstSongPosInGroup(currPos);
-            else
-                currPos++;
-        }
-        else {
-            setGroupSelectedState(currPos, false);
+        int fromSongPos = 0;
+        int toSongPos = rowsUnfolded.size() - 1;
 
+        if (repeatMode != RepeatMode.REPEAT_ALL &&
+                repeatMode != RepeatMode.REPEAT_ONE
+                ) {
+            fromSongPos = getFirstSongPosInGroup(currPos, repeatMode.getLevel());
+            toSongPos = getLastSongPosInGroup(currPos, repeatMode.getLevel());
+        }
+
+        setGroupSelectedState(currPos, false);
+
+        currPos++;
+        if (currPos > toSongPos)
+            currPos = fromSongPos;
+
+        while (currPos <= toSongPos &&
+                rowsUnfolded.get(currPos).getClass() != RowSong.class)
             currPos++;
-            if (currPos >= rowsUnfolded.size())
-                currPos = 0;
 
-            while (currPos < rowsUnfolded.size() &&
-                    rowsUnfolded.get(currPos).getClass() != RowSong.class)
-                currPos++;
+        //shouldn't happen, unless the ground is shifting under our feet...
+        if (currPos == toSongPos + 1)
+            currPos = -1;
 
-            if (currPos == rowsUnfolded.size())
-                currPos = -1;
-
-            setGroupSelectedState(currPos, true);
-        }
+        setGroupSelectedState(currPos, true);
     }
 
     public void moveToPrevSong() {
-        if (repeatMode == RepeatMode.REPEAT_GROUP) {
-            int firstSongPos = getFirstSongPosInGroup(currPos);
-            if (currPos == firstSongPos)
-                currPos = getLastSongPosInGroup(currPos);
-            else
-                currPos--;
-        }
-        else {
-            setGroupSelectedState(currPos, false);
+        int fromSongPos = 0;
+        int toSongPos = rowsUnfolded.size() - 1;
 
+        if (repeatMode != RepeatMode.REPEAT_ALL &&
+                repeatMode != RepeatMode.REPEAT_ONE
+                ) {
+            fromSongPos = getFirstSongPosInGroup(currPos, repeatMode.getLevel());
+            toSongPos = getLastSongPosInGroup(currPos, repeatMode.getLevel());
+        }
+
+        setGroupSelectedState(currPos, false);
+
+        currPos--;
+        if (currPos < fromSongPos)
+            currPos = toSongPos;
+
+        while (currPos >= fromSongPos &&
+                rowsUnfolded.get(currPos).getClass() != RowSong.class
+                )
             currPos--;
-            if (currPos < 0)
-                currPos = rowsUnfolded.size() - 1;
 
-            while (currPos >= 0 && rowsUnfolded.get(currPos).getClass() != RowSong.class) {
-                currPos--;
-                if (currPos < 0)
-                    currPos = rowsUnfolded.size() - 1;
-            }
+        //shouldn't happen, unless the ground is shifting under our feet...
+        if (currPos < fromSongPos)
+            currPos = -1;
 
-            setGroupSelectedState(currPos, true);
-        }
+        setGroupSelectedState(currPos, true);
     }
 
     public void moveToPrevGroup() {
         setGroupSelectedState(currPos, false);
 
-        currPos = getFirstSongPosInGroup(currPos);
+        currPos = getFirstSongPosInLeafGroup(currPos);
         currPos--;
 
         if (currPos < 0)
@@ -301,7 +335,7 @@ public class Rows {
         if (currPos < 0)
             currPos = rowsUnfolded.size() - 1;
 
-        currPos = getFirstSongPosInGroup(currPos);
+        currPos = getFirstSongPosInLeafGroup(currPos);
 
         setGroupSelectedState(currPos, true);
     }
@@ -309,7 +343,7 @@ public class Rows {
     public void moveToNextGroup() {
         setGroupSelectedState(currPos, false);
 
-        currPos = getLastSongPosInGroup(currPos);
+        currPos = getLastSongPosInLeafGroup(currPos);
         currPos++;
 
         // if last song go to beginning

@@ -166,11 +166,19 @@
 
     <string name="action_repeat_title">Repeat</string>
     <string name="action_repeat_all">All</string>
+    <string name="action_repeat_top">Top-Level Group</string>
+    <string name="action_repeat_2nd">Second-Level Group</string>
+    <string name="action_repeat_3rd">Third-Level Group</string>
+    <string name="action_repeat_4th">Fourth-Level Group</string>
     <string name="action_repeat_one">Track</string>
-    <string name="action_repeat_group">Group</string>
+    <string name="action_repeat_group">Leaf Group</string>
     <string name="state_repeat_all">Repeat all</string>
+    <string name="state_repeat_top">Repeat top group</string>
+    <string name="state_repeat_2nd">Repeat 2nd group</string>
+    <string name="state_repeat_3rd">Repeat 3rd group</string>
+    <string name="state_repeat_4th">Repeat 4th group</string>
     <string name="state_repeat_one">Repeat track</string>
-    <string name="state_repeat_group">Repeat group</string>
+    <string name="state_repeat_group">Repeat leaf group</string>
 
     <string name="action_music_mode">Music mode</string>
     <string name="action_edit_mode">Edit mode</string>
